@@ -84,27 +84,31 @@ export async function updateUserProfile(updates: Partial<Profile>): Promise<Prof
 
 /**
  * Génère un hash pour une personne (pour le matching anonyme)
+ * Version client-side utilisant Web Crypto API
  */
 export async function generatePersonHash(
   firstName: string,
   lastName: string,
   country: string
 ): Promise<string> {
-  const supabase = createClient()
+  // Normalise les données : lowercase, trim, normalise les accents
+  const normalizedFirst = firstName.toLowerCase().trim().normalize('NFD').replace(/[\u0300-\u036f]/g, '')
+  const normalizedLast = lastName.toLowerCase().trim().normalize('NFD').replace(/[\u0300-\u036f]/g, '')
+  const normalizedCountry = country.toLowerCase().trim().normalize('NFD').replace(/[\u0300-\u036f]/g, '')
   
-  const { data, error } = await supabase
-    .rpc('generate_person_hash', {
-      p_first_name: firstName,
-      p_last_name: lastName,
-      p_country: country
-    })
-
-  if (error) {
-    console.error('Error generating hash:', error)
-    throw error
-  }
-
-  return data
+  // Combine les données
+  const combined = `${normalizedFirst}|${normalizedLast}|${normalizedCountry}`
+  
+  // Génère le hash SHA-256
+  const encoder = new TextEncoder()
+  const data = encoder.encode(combined)
+  const hashBuffer = await crypto.subtle.digest('SHA-256', data)
+  
+  // Convertit en string hexadécimal
+  const hashArray = Array.from(new Uint8Array(hashBuffer))
+  const hashHex = hashArray.map(b => b.toString(16).padStart(2, '0')).join('')
+  
+  return hashHex
 }
 
 /**
