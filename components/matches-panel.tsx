@@ -22,6 +22,7 @@ interface MatchWithDetails {
   myDeclaration: Declaration | null
   otherDeclaration: Declaration | null
   isNotified: boolean
+  matchScore: number // Score de similarité
 }
 
 export function MatchesPanel() {
@@ -68,7 +69,8 @@ export function MatchesPanel() {
         created_at: match.created_at,
         myDeclaration,
         otherDeclaration: null, // On ne révèle pas l'autre déclaration (anonymat)
-        isNotified
+        isNotified,
+        matchScore: match.match_score || 1.0 // Score de similarité
       }
     })
 
@@ -320,11 +322,14 @@ export function MatchesPanel() {
                     <AlertTriangle className="w-4 h-4 sm:w-5 sm:h-5 text-orange-500" />
                   </div>
                   <div className="min-w-0 flex-1">
-                    <p className="text-xs sm:text-sm font-bold text-orange-700 mb-0.5 sm:mb-1">
+                    <p className="text-xs sm:text-sm font-bold text-orange-700 mb-0.5 sm:mb-1 flex items-center gap-2">
                       ⚠️ Correspondance détectée
+                      <span className="text-[10px] sm:text-xs font-semibold px-2 py-0.5 bg-orange-500/20 text-orange-700 rounded-full">
+                        {Math.round(selectedMatch.matchScore * 100)}% similarité
+                      </span>
                     </p>
                     <p className="text-[10px] sm:text-xs text-orange-600 leading-relaxed">
-                      Une autre personne a déclaré quelqu'un avec un nom très similaire dans le même pays.
+                      Une autre personne a déclaré quelqu'un avec un nom très similaire ({Math.round(selectedMatch.matchScore * 100)}% de correspondance) dans le même pays.
                       Par respect de l'anonymat, nous ne révélons pas l'identité de l'autre utilisateur.
                     </p>
                   </div>

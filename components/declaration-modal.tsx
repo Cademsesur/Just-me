@@ -307,16 +307,19 @@ export function DeclarationModal({ open, onOpenChange, onSuccess }: DeclarationM
         <form onSubmit={handleSubmit} className="p-4 sm:p-6 md:p-8 space-y-4 sm:space-y-5">
           <div className="space-y-1.5 sm:space-y-2">
             <Label htmlFor="firstName" className="text-foreground font-semibold text-sm sm:text-base flex items-center gap-2">
-              Prénom <span className="text-primary">*</span>
+              Prénom principal <span className="text-primary">*</span>
             </Label>
             <Input
               id="firstName"
-              placeholder="Ex: Marie"
+              placeholder="Ex: Marie (ou Marie-Anne, Jean-Pierre...)"
               value={firstName}
               onChange={(e) => setFirstName(e.target.value)}
               className="bg-gray-50 border-2 border-gray-200 focus:border-primary focus:ring-2 focus:ring-primary/20 rounded-xl h-11 sm:h-12 text-sm sm:text-base transition-all"
               required
             />
+            <p className="text-xs text-muted-foreground">
+              💡 Si prénom composé, entre tout (ex: "Marie-Anne"). On détectera les variations automatiquement.
+            </p>
           </div>
 
           <div className="space-y-1.5 sm:space-y-2">

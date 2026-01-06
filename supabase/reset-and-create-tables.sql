@@ -138,6 +138,7 @@ CREATE TABLE matches (
   declaration_id_1 UUID NOT NULL REFERENCES declarations(id) ON DELETE CASCADE,
   declaration_id_2 UUID NOT NULL REFERENCES declarations(id) ON DELETE CASCADE,
   person_hash TEXT NOT NULL,
+  match_score FLOAT DEFAULT 1.0, -- Score de similarité (0.0 à 1.0)
   user_1_notified BOOLEAN DEFAULT FALSE,
   user_2_notified BOOLEAN DEFAULT FALSE,
   created_at TIMESTAMPTZ DEFAULT NOW(),
@@ -264,36 +265,121 @@ $$;
 GRANT EXECUTE ON FUNCTION get_global_stats() TO anon, authenticated;
 
 -- =============================================================================
--- 7. TRIGGER POUR DÉTECTER AUTOMATIQUEMENT LES MATCHES
+-- 7. TRIGGER POUR DÉTECTER AUTOMATIQUEMENT LES MATCHES (FUZZY MATCHING)
 -- =============================================================================
 
+-- Activer l'extension pour la similarité de texte
+CREATE EXTENSION IF NOT EXISTS pg_trgm;
+
+-- Fonction pour calculer le score de similarité entre deux personnes
+CREATE OR REPLACE FUNCTION calculate_person_similarity(
+  first_name_1 TEXT,
+  last_name_1 TEXT,
+  country_1 TEXT,
+  first_name_2 TEXT,
+  last_name_2 TEXT,
+  country_2 TEXT
+)
+RETURNS FLOAT
+LANGUAGE plpgsql
+AS $$
+DECLARE
+  first_name_score FLOAT;
+  last_name_score FLOAT;
+  country_match BOOLEAN;
+  final_score FLOAT;
+  normalized_first_1 TEXT;
+  normalized_first_2 TEXT;
+  normalized_last_1 TEXT;
+  normalized_last_2 TEXT;
+BEGIN
+  -- Le pays doit être exactement le même
+  country_match := LOWER(TRIM(country_1)) = LOWER(TRIM(country_2));
+  
+  IF NOT country_match THEN
+    RETURN 0.0;
+  END IF;
+  
+  -- Normalisation : lowercase, trim, suppression espaces multiples
+  normalized_first_1 := LOWER(TRIM(REGEXP_REPLACE(first_name_1, '\s+', ' ', 'g')));
+  normalized_first_2 := LOWER(TRIM(REGEXP_REPLACE(first_name_2, '\s+', ' ', 'g')));
+  normalized_last_1 := LOWER(TRIM(REGEXP_REPLACE(last_name_1, '\s+', ' ', 'g')));
+  normalized_last_2 := LOWER(TRIM(REGEXP_REPLACE(last_name_2, '\s+', ' ', 'g')));
+  
+  -- Calcul de similarité pour les prénoms (trigram)
+  first_name_score := similarity(normalized_first_1, normalized_first_2);
+  
+  -- Calcul de similarité pour les noms
+  last_name_score := similarity(normalized_last_1, normalized_last_2);
+  
+  -- Score final = moyenne pondérée (nom de famille plus important que prénom)
+  final_score := (first_name_score * 0.4) + (last_name_score * 0.6);
+  
+  RETURN final_score;
+END;
+$$;
+
+-- Fonction pour détecter les matches avec fuzzy matching
 CREATE OR REPLACE FUNCTION check_for_matches()
 RETURNS TRIGGER AS $$
 DECLARE
-  matching_declaration_id UUID;
+  potential_match RECORD;
+  match_score FLOAT;
+  threshold FLOAT := 0.70; -- 70% de similarité minimum
 BEGIN
-  -- Chercher une autre déclaration active avec le même person_hash
-  -- mais d'un utilisateur différent
-  SELECT id INTO matching_declaration_id
-  FROM declarations
-  WHERE person_hash = NEW.person_hash
-    AND user_id != NEW.user_id
-    AND is_active = true
-    AND id != NEW.id
-  LIMIT 1;
-
-  -- Si on trouve un match, créer l'entrée dans la table matches
-  IF matching_declaration_id IS NOT NULL THEN
-    INSERT INTO matches (declaration_id_1, declaration_id_2, person_hash)
-    VALUES (NEW.id, matching_declaration_id, NEW.person_hash)
-    ON CONFLICT DO NOTHING; -- Éviter les doublons
+  -- Chercher toutes les déclarations actives d'autres utilisateurs dans le même pays
+  FOR potential_match IN
+    SELECT id, user_id, first_name, last_name, country, person_hash
+    FROM declarations
+    WHERE user_id != NEW.user_id
+      AND is_active = true
+      AND LOWER(TRIM(country)) = LOWER(TRIM(NEW.country))
+      AND id != NEW.id
+  LOOP
+    -- Calculer le score de similarité
+    match_score := calculate_person_similarity(
+      NEW.first_name,
+      NEW.last_name,
+      NEW.country,
+      potential_match.first_name,
+      potential_match.last_name,
+      potential_match.country
+    );
     
-    -- On pourrait aussi inverser l'ordre pour être sûr
-    INSERT INTO matches (declaration_id_1, declaration_id_2, person_hash)
-    VALUES (matching_declaration_id, NEW.id, NEW.person_hash)
-    ON CONFLICT DO NOTHING;
-  END IF;
-
+    -- Si le score dépasse le seuil, créer un match
+    IF match_score >= threshold THEN
+      -- Créer le match avec le score
+      INSERT INTO matches (
+        declaration_id_1,
+        declaration_id_2,
+        person_hash,
+        match_score
+      )
+      VALUES (
+        NEW.id,
+        potential_match.id,
+        NEW.person_hash,
+        match_score
+      )
+      ON CONFLICT (declaration_id_1, declaration_id_2) DO NOTHING;
+      
+      -- Log pour debug (visible dans les logs Supabase)
+      RAISE NOTICE 'Match trouvé ! Score: % (seuil: %) entre "% %" et "% %"',
+        ROUND(match_score::numeric, 2),
+        threshold,
+        NEW.first_name, NEW.last_name,
+        potential_match.first_name, potential_match.last_name;
+    ELSE
+      -- Log des non-matches pour debug
+      IF match_score > 0.5 THEN
+        RAISE NOTICE 'Match proche mais insuffisant: % entre "% %" et "% %"',
+          ROUND(match_score::numeric, 2),
+          NEW.first_name, NEW.last_name,
+          potential_match.first_name, potential_match.last_name;
+      END IF;
+    END IF;
+  END LOOP;
+  
   RETURN NEW;
 END;
 $$ LANGUAGE plpgsql SECURITY DEFINER;

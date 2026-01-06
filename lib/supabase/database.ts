@@ -30,6 +30,7 @@ export interface Match {
   declaration_id_1: string
   declaration_id_2: string
   person_hash: string
+  match_score: number // Score de similarité (0.0 à 1.0)
   user_1_notified: boolean
   user_2_notified: boolean
   created_at: string
@@ -84,20 +85,51 @@ export async function updateUserProfile(updates: Partial<Profile>): Promise<Prof
 
 /**
  * Génère un hash pour une personne (pour le matching anonyme)
- * Version client-side utilisant Web Crypto API
+ * Version client-side utilisant Web Crypto API avec normalisation avancée
  */
 export async function generatePersonHash(
   firstName: string,
   lastName: string,
   country: string
 ): Promise<string> {
-  // Normalise les données : lowercase, trim, normalise les accents
-  const normalizedFirst = firstName.toLowerCase().trim().normalize('NFD').replace(/[\u0300-\u036f]/g, '')
-  const normalizedLast = lastName.toLowerCase().trim().normalize('NFD').replace(/[\u0300-\u036f]/g, '')
+  // Fonction pour normaliser et extraire le prénom principal
+  const normalizeFirstName = (name: string): string => {
+    let normalized = name.toLowerCase().trim().normalize('NFD').replace(/[\u0300-\u036f]/g, '')
+    
+    // Supprime les tirets et espaces pour prendre uniquement le premier prénom
+    // "Marie-Anne" → "marie"
+    // "Marie Anne" → "marie"
+    // "Jean-Pierre" → "jean"
+    normalized = normalized.split(/[-\s]+/)[0]
+    
+    return normalized
+  }
+  
+  // Fonction pour normaliser le nom de famille
+  const normalizeLastName = (name: string): string => {
+    let normalized = name.toLowerCase().trim().normalize('NFD').replace(/[\u0300-\u036f]/g, '')
+    
+    // Supprime tous les espaces et tirets
+    // "De La Cruz" → "delacruz"
+    // "Van-Berg" → "vanberg"
+    normalized = normalized.replace(/[-\s]+/g, '')
+    
+    return normalized
+  }
+  
+  // Normalise les données
+  const normalizedFirst = normalizeFirstName(firstName)
+  const normalizedLast = normalizeLastName(lastName)
   const normalizedCountry = country.toLowerCase().trim().normalize('NFD').replace(/[\u0300-\u036f]/g, '')
   
   // Combine les données
   const combined = `${normalizedFirst}|${normalizedLast}|${normalizedCountry}`
+  
+  console.log('🔍 Hash generation:', {
+    original: { firstName, lastName, country },
+    normalized: { first: normalizedFirst, last: normalizedLast, country: normalizedCountry },
+    combined
+  })
   
   // Génère le hash SHA-256
   const encoder = new TextEncoder()
