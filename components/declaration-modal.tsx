@@ -279,34 +279,34 @@ export function DeclarationModal({ open, onOpenChange, onSuccess }: DeclarationM
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="sm:max-w-[550px] bg-white border-0 shadow-2xl overflow-hidden p-0">
+      <DialogContent className="sm:max-w-[550px] max-w-[95vw] bg-white border-0 shadow-2xl overflow-hidden p-0 max-h-[90vh] overflow-y-auto">
         {/* Header avec gradient */}
-        <div className="gradient-primary p-6 sm:p-8 relative overflow-hidden">
+        <div className="gradient-primary p-4 sm:p-6 md:p-8 relative overflow-hidden">
           {/* Effet de fond */}
           <div className="absolute inset-0 opacity-20">
-            <div className="absolute top-0 right-0 w-32 h-32 bg-white rounded-full blur-2xl" />
-            <div className="absolute bottom-0 left-0 w-40 h-40 bg-white rounded-full blur-2xl" />
+            <div className="absolute top-0 right-0 w-24 sm:w-32 h-24 sm:h-32 bg-white rounded-full blur-2xl" />
+            <div className="absolute bottom-0 left-0 w-32 sm:w-40 h-32 sm:h-40 bg-white rounded-full blur-2xl" />
           </div>
           
           <DialogHeader className="relative z-10">
-            <div className="flex items-center gap-3 mb-3">
-              <div className="w-12 h-12 rounded-full bg-white/20 backdrop-blur-sm flex items-center justify-center">
-                <Eye className="w-6 h-6 text-white animate-blink" />
+            <div className="flex items-center gap-2 sm:gap-3 mb-2 sm:mb-3">
+              <div className="w-10 h-10 sm:w-12 sm:h-12 rounded-full bg-white/20 backdrop-blur-sm flex items-center justify-center shrink-0">
+                <Eye className="w-5 h-5 sm:w-6 sm:h-6 text-white animate-blink" />
               </div>
-              <DialogTitle className="text-2xl sm:text-3xl font-black text-white">
+              <DialogTitle className="text-xl sm:text-2xl md:text-3xl font-black text-white leading-tight">
                 Nouvelle déclaration 💕
               </DialogTitle>
             </div>
-            <DialogDescription className="text-white/90 text-base sm:text-lg leading-relaxed">
+            <DialogDescription className="text-white/90 text-sm sm:text-base md:text-lg leading-relaxed">
               Renseigne les informations de la personne avec qui tu es en relation. Ton identité reste <strong className="text-white font-bold">100% anonyme</strong>. 🔒
             </DialogDescription>
           </DialogHeader>
         </div>
 
         {/* Form content */}
-        <form onSubmit={handleSubmit} className="p-6 sm:p-8 space-y-5">
-          <div className="space-y-2">
-            <Label htmlFor="firstName" className="text-foreground font-semibold text-base flex items-center gap-2">
+        <form onSubmit={handleSubmit} className="p-4 sm:p-6 md:p-8 space-y-4 sm:space-y-5">
+          <div className="space-y-1.5 sm:space-y-2">
+            <Label htmlFor="firstName" className="text-foreground font-semibold text-sm sm:text-base flex items-center gap-2">
               Prénom <span className="text-primary">*</span>
             </Label>
             <Input
@@ -314,13 +314,13 @@ export function DeclarationModal({ open, onOpenChange, onSuccess }: DeclarationM
               placeholder="Ex: Marie"
               value={firstName}
               onChange={(e) => setFirstName(e.target.value)}
-              className="bg-gray-50 border-2 border-gray-200 focus:border-primary focus:ring-2 focus:ring-primary/20 rounded-xl h-12 text-base transition-all"
+              className="bg-gray-50 border-2 border-gray-200 focus:border-primary focus:ring-2 focus:ring-primary/20 rounded-xl h-11 sm:h-12 text-sm sm:text-base transition-all"
               required
             />
           </div>
 
-          <div className="space-y-2">
-            <Label htmlFor="lastName" className="text-foreground font-semibold text-base flex items-center gap-2">
+          <div className="space-y-1.5 sm:space-y-2">
+            <Label htmlFor="lastName" className="text-foreground font-semibold text-sm sm:text-base flex items-center gap-2">
               Nom <span className="text-primary">*</span>
             </Label>
             <Input
@@ -328,13 +328,13 @@ export function DeclarationModal({ open, onOpenChange, onSuccess }: DeclarationM
               placeholder="Ex: Dupont"
               value={lastName}
               onChange={(e) => setLastName(e.target.value)}
-              className="bg-gray-50 border-2 border-gray-200 focus:border-primary focus:ring-2 focus:ring-primary/20 rounded-xl h-12 text-base transition-all"
+              className="bg-gray-50 border-2 border-gray-200 focus:border-primary focus:ring-2 focus:ring-primary/20 rounded-xl h-11 sm:h-12 text-sm sm:text-base transition-all"
               required
             />
           </div>
 
-          <div className="space-y-2">
-            <Label htmlFor="country" className="text-foreground font-semibold text-base flex items-center gap-2">
+          <div className="space-y-1.5 sm:space-y-2">
+            <Label htmlFor="country" className="text-foreground font-semibold text-sm sm:text-base flex items-center gap-2">
               Pays <span className="text-primary">*</span>
             </Label>
             <Popover open={countryOpen} onOpenChange={setCountryOpen}>
@@ -343,25 +343,25 @@ export function DeclarationModal({ open, onOpenChange, onSuccess }: DeclarationM
                   variant="outline"
                   role="combobox"
                   aria-expanded={countryOpen}
-                  className="w-full justify-between bg-white border-2 border-primary/20 hover:bg-gradient-to-r hover:from-primary/10 hover:to-secondary/10 hover:border-primary hover:text-black focus:border-primary focus:ring-2 focus:ring-primary/20 rounded-xl h-12 text-base font-normal transition-all"
+                  className="w-full justify-between bg-white border-2 border-primary/20 hover:bg-gradient-to-r hover:from-primary/10 hover:to-secondary/10 hover:border-primary hover:text-black focus:border-primary focus:ring-2 focus:ring-primary/20 rounded-xl h-11 sm:h-12 text-sm sm:text-base font-normal transition-all"
                 >
                   {country ? (
-                    <span className="flex items-center gap-2">
-                      <span className="text-xl">{countries.find(c => c.name === country)?.flag}</span>
-                      {country}
+                    <span className="flex items-center gap-1.5 sm:gap-2 truncate">
+                      <span className="text-lg sm:text-xl shrink-0">{countries.find(c => c.name === country)?.flag}</span>
+                      <span className="truncate">{country}</span>
                     </span>
                   ) : (
-                    "Sélectionne un pays"
+                    <span className="text-muted-foreground">Sélectionne un pays</span>
                   )}
                   <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
                 </Button>
               </PopoverTrigger>
-              <PopoverContent className="w-[var(--radix-popover-trigger-width)] p-0 bg-white border-2 border-gray-200 rounded-xl shadow-xl" align="start">
+              <PopoverContent className="w-[calc(100vw-2rem)] sm:w-[var(--radix-popover-trigger-width)] p-0 bg-white border-2 border-gray-200 rounded-xl shadow-xl" align="start">
                 <Command className="bg-white rounded-xl">
-                  <CommandInput placeholder="Rechercher un pays..." className="h-12 text-base" />
+                  <CommandInput placeholder="Rechercher un pays..." className="h-11 sm:h-12 text-sm sm:text-base" />
                   <CommandList>
-                    <CommandEmpty>Aucun pays trouvé.</CommandEmpty>
-                    <CommandGroup className="max-h-[300px] overflow-y-auto">
+                    <CommandEmpty className="text-sm py-6">Aucun pays trouvé.</CommandEmpty>
+                    <CommandGroup className="max-h-[250px] sm:max-h-[300px] overflow-y-auto">
                       {countries.map((c) => (
                         <CommandItem
                           key={c.name}
@@ -370,17 +370,17 @@ export function DeclarationModal({ open, onOpenChange, onSuccess }: DeclarationM
                             setCountry(currentValue === country.toLowerCase() ? "" : c.name)
                             setCountryOpen(false)
                           }}
-                          className="cursor-pointer hover:bg-primary/10 rounded-lg"
+                          className="cursor-pointer hover:bg-primary/10 rounded-lg py-2 sm:py-3"
                         >
                           <Check
                             className={cn(
-                              "mr-2 h-4 w-4",
+                              "mr-2 h-4 w-4 shrink-0",
                               country === c.name ? "opacity-100" : "opacity-0"
                             )}
                           />
-                          <span className="flex items-center gap-2">
-                            <span className="text-xl">{c.flag}</span>
-                            {c.name}
+                          <span className="flex items-center gap-1.5 sm:gap-2">
+                            <span className="text-lg sm:text-xl shrink-0">{c.flag}</span>
+                            <span className="text-sm sm:text-base">{c.name}</span>
                           </span>
                         </CommandItem>
                       ))}
@@ -392,38 +392,38 @@ export function DeclarationModal({ open, onOpenChange, onSuccess }: DeclarationM
           </div>
 
           {/* Info box avec gradient subtil */}
-          <div className="bg-gradient-to-br from-primary/5 via-secondary/5 to-accent/5 border-2 border-primary/20 rounded-2xl p-5">
-            <p className="text-sm sm:text-base text-foreground leading-relaxed">
+          <div className="bg-gradient-to-br from-primary/5 via-secondary/5 to-accent/5 border-2 border-primary/20 rounded-xl sm:rounded-2xl p-3 sm:p-4 md:p-5">
+            <p className="text-xs sm:text-sm md:text-base text-foreground leading-relaxed">
               <strong className="font-bold text-primary">🔐 100% Anonyme :</strong> Personne ne saura que c'est toi qui as fait
               cette déclaration. Seule une <strong className="font-bold">correspondance mutuelle</strong> sera révélée. ✨
             </p>
           </div>
 
           {/* Buttons */}
-          <div className="flex flex-col sm:flex-row gap-3 pt-2">
+          <div className="flex flex-col sm:flex-row gap-2 sm:gap-3 pt-2">
             <Button
               type="button"
               variant="outline"
               onClick={() => onOpenChange(false)}
-              className="flex-1 cursor-pointer border-2 border-primary/20 hover:bg-gradient-to-r hover:from-primary/10 hover:to-secondary/10 hover:border-primary hover:text-black rounded-xl h-12 font-semibold transition-all hover:scale-105 active:scale-95"
+              className="flex-1 cursor-pointer border-2 border-primary/20 hover:bg-gradient-to-r hover:from-primary/10 hover:to-secondary/10 hover:border-primary hover:text-black rounded-xl h-11 sm:h-12 text-sm sm:text-base font-semibold transition-all hover:scale-105 active:scale-95 touch-manipulation"
               disabled={isSubmitting}
             >
               Annuler
             </Button>
             <Button
               type="submit"
-              className="flex-1 gradient-primary hover:opacity-90 text-white cursor-pointer font-bold rounded-xl h-12 shadow-pink hover:shadow-xl transition-all hover:scale-105 active:scale-95 disabled:opacity-50 disabled:cursor-not-allowed"
+              className="flex-1 gradient-primary hover:opacity-90 text-white cursor-pointer font-bold rounded-xl h-11 sm:h-12 text-sm sm:text-base shadow-pink hover:shadow-xl transition-all hover:scale-105 active:scale-95 disabled:opacity-50 disabled:cursor-not-allowed touch-manipulation"
               disabled={!isValid || isSubmitting}
             >
               {isSubmitting ? (
                 <>
-                  <Loader2 className="mr-2 h-5 w-5 animate-spin" />
-                  Envoi en cours...
+                  <Loader2 className="mr-2 h-4 w-4 sm:h-5 sm:w-5 animate-spin" />
+                  <span className="text-sm sm:text-base">Envoi...</span>
                 </>
               ) : (
                 <>
-                  <Eye className="mr-2 h-5 w-5" />
-                  Valider la déclaration
+                  <Eye className="mr-2 h-4 w-4 sm:h-5 sm:w-5" />
+                  <span className="text-sm sm:text-base">Valider</span>
                 </>
               )}
             </Button>
