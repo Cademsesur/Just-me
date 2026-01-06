@@ -131,18 +131,19 @@ export async function createDeclaration(
     const personHash = await generatePersonHash(firstName, lastName, country)
 
     // Vérifier si une déclaration similaire existe déjà
-    const { data: existingDeclaration } = await supabase
+    const { data: existingDeclarations } = await supabase
       .from('declarations')
       .select('id, first_name, last_name, country')
       .eq('user_id', user.id)
       .eq('person_hash', personHash)
       .eq('is_active', true)
-      .single()
+      .limit(1)
 
-    if (existingDeclaration) {
+    if (existingDeclarations && existingDeclarations.length > 0) {
+      const existing = existingDeclarations[0]
       return { 
         success: false, 
-        error: `Tu as déjà déclaré ${existingDeclaration.first_name} ${existingDeclaration.last_name} (${existingDeclaration.country})` 
+        error: `Tu as déjà déclaré ${existing.first_name} ${existing.last_name} (${existing.country})` 
       }
     }
 
@@ -160,7 +161,13 @@ export async function createDeclaration(
       .single()
 
     if (error) {
-      console.error('Error creating declaration:', error)
+      console.error('❌ Error creating declaration:', {
+        error,
+        code: error.code,
+        message: error.message,
+        details: error.details,
+        hint: error.hint
+      })
       
       // Gérer l'erreur de contrainte unique
       if (error.code === '23505') {
@@ -170,9 +177,17 @@ export async function createDeclaration(
         }
       }
       
+      // Erreur de permissions RLS
+      if (error.code === '42501' || error.message?.includes('policy')) {
+        return { 
+          success: false, 
+          error: 'Permissions insuffisantes. Vérifie que les politiques RLS sont configurées.' 
+        }
+      }
+      
       return { 
         success: false, 
-        error: 'Erreur lors de la création de la déclaration' 
+        error: `Erreur: ${error.message || 'Impossible de créer la déclaration'}` 
       }
     }
 
