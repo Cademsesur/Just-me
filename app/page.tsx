@@ -1,86 +1,157 @@
 "use client"
 
 import { Button } from "@/components/ui/button"
-import { InteractiveMap } from "@/components/interactive-map"
 import { EnhancedStats } from "@/components/enhanced-stats"
 import { AuthModal } from "@/components/auth-modal"
 import { useEffect, useState } from "react"
 import { Shield, Heart, Eye, CheckCircle2, Link2 } from "lucide-react"
+import { getGlobalStats } from "@/lib/supabase/database"
 
 export default function Home() {
   const [isVisible, setIsVisible] = useState(false)
   const [showAuthModal, setShowAuthModal] = useState(false)
+  const [scrolled, setScrolled] = useState(false)
+  const [stats, setStats] = useState({
+    totalUsers: 0,
+    totalDeclarations: 0,
+    totalMatches: 0
+  })
+  const [statsLoading, setStatsLoading] = useState(true)
 
   useEffect(() => {
     setIsVisible(true)
+    
+    // Charger les stats
+    loadStats()
+    
+    // Detect scroll for header background
+    const handleScroll = () => {
+      setScrolled(window.scrollY > 20)
+    }
+    
+    window.addEventListener('scroll', handleScroll)
+    return () => window.removeEventListener('scroll', handleScroll)
   }, [])
 
-  return (
-    <main className="min-h-screen bg-background text-foreground overflow-x-hidden relative">
-      <div className="fixed inset-0 bg-gradient-to-b from-[#0a0516] via-[#0a0a0a] to-[#0a0a0a] -z-10" />
-      <div className="fixed top-0 left-0 w-full h-[60vh] bg-[radial-gradient(ellipse_at_top,rgba(109,40,217,0.08),transparent_50%)] -z-10" />
+  const loadStats = async () => {
+    setStatsLoading(true)
+    const globalStats = await getGlobalStats()
+    setStats(globalStats)
+    setStatsLoading(false)
+  }
 
-      <section className="min-h-screen flex flex-col items-center justify-center px-4 sm:px-6 lg:px-8 relative pt-16 sm:pt-20 pb-20 sm:pb-32">
+  // Formater les nombres avec des séparateurs
+  const formatNumber = (num: number) => {
+    if (num >= 1000000) {
+      return `${(num / 1000000).toFixed(1)}M`
+    } else if (num >= 1000) {
+      return `${(num / 1000).toFixed(1)}K`
+    }
+    return num.toString()
+  }
+
+  return (
+    <main className="min-h-screen gradient-bg text-foreground overflow-x-hidden relative">
+      {/* Fond moderne avec dégradé doux */}
+      <div className="fixed inset-0 gradient-bg -z-10" />
+      
+      {/* Formes décoratives flottantes - cachées sur mobile pour performance */}
+      <div className="hidden md:block fixed top-10 right-20 w-96 h-96 bg-primary/10 rounded-full blur-3xl -z-10 animate-pulse" />
+      <div className="hidden md:block fixed top-1/3 left-10 w-72 h-72 bg-secondary/10 rounded-full blur-3xl -z-10 animate-pulse" style={{ animationDelay: '1s' }} />
+      <div className="hidden md:block fixed bottom-20 right-1/4 w-80 h-80 bg-accent/10 rounded-full blur-3xl -z-10 animate-pulse" style={{ animationDelay: '2s' }} />
+
+      {/* Hero Section */}
+      <section className="min-h-screen flex flex-col items-center justify-center px-4 sm:px-6 lg:px-8 relative pt-20 sm:pt-20 pb-16 sm:pb-32">
         <div
-          className={`relative z-10 text-center max-w-5xl transition-all duration-1000 ${isVisible ? "opacity-100 translate-y-0" : "opacity-0 translate-y-8"}`}
+          className={`relative z-10 text-center max-w-6xl w-full transition-all duration-1000 ${isVisible ? "opacity-100 translate-y-0" : "opacity-0 translate-y-8"}`}
         >
-          <div className="mb-8 sm:mb-12 inline-flex items-center justify-center">
-            <div className="flex items-center gap-2 sm:gap-3 px-5 sm:px-8 py-3 sm:py-4 rounded-full border-2 border-primary/40 bg-primary/5 backdrop-blur-sm">
-              <Eye className="w-5 h-5 sm:w-7 sm:h-7 text-primary animate-blink" />
-              <span className="text-2xl sm:text-3xl font-bold tracking-wide text-foreground">JustMe</span>
+          {/* Logo moderne - plus petit sur mobile */}
+          <div className="mb-8 sm:mb-14 inline-flex items-center justify-center">
+            <div className="flex items-center gap-2 sm:gap-3 px-5 sm:px-10 py-3 sm:py-5 rounded-full gradient-primary shadow-pink">
+              <Eye className="w-5 h-5 sm:w-8 sm:h-8 text-white animate-blink" />
+              <span className="text-xl sm:text-4xl font-extrabold tracking-wide text-white">JustMe</span>
             </div>
           </div>
 
-          <h1 className="text-4xl sm:text-5xl md:text-7xl lg:text-8xl font-bold mb-8 sm:mb-10 text-pretty leading-[1.05] tracking-tight px-4">
-            <span className="block text-muted-foreground text-xl sm:text-2xl md:text-3xl mb-4 sm:mb-6 font-medium text-pretty">
-              Ce doute qui te ronge.
-            </span>
-            Cette personne te <span className="text-primary">trompe-t-elle</span> ?
+          {/* Titre principal avec gradient - optimisé mobile */}
+          <h1 className="text-4xl sm:text-6xl md:text-7xl lg:text-8xl font-black mb-8 sm:mb-12 text-balance leading-[1.1] sm:leading-[1.05] tracking-tighter px-2 sm:px-4 animate-fade-in-up">
+            Cette personne te{" "}
+            <span className="gradient-text-animated inline-block">
+              trompe-t-elle
+            </span>{" "}
+            ? 💔
           </h1>
 
-          <p className="text-lg sm:text-xl md:text-2xl text-muted-foreground mb-10 sm:mb-12 text-pretty max-w-3xl mx-auto leading-relaxed px-4 text-center">
-            <strong className="text-foreground">L'infidélité existe.</strong> Les mensonges aussi.
-            <br />
-            Mais tu n'as plus à vivre dans l'incertitude.
+          {/* Sous-titre - taille réduite mobile */}
+          <p className="text-lg sm:text-2xl md:text-3xl text-foreground/80 mb-10 sm:mb-14 text-balance max-w-4xl mx-auto leading-relaxed px-4 text-center font-medium animate-fade-in-up" style={{ animationDelay: '0.2s' }}>
+            <strong className="text-foreground">L'infidélité existe.</strong> Les mensonges aussi. 😔
+            <br className="hidden sm:block" />
+            <span className="sm:hidden"> </span>
+            Mais tu n'as plus à vivre dans <span className="text-primary font-bold">l'incertitude</span>. ✨
           </p>
 
-          <div className="flex justify-center mb-12 sm:mb-16 px-4">
+          {/* CTA Button - full width mobile */}
+          <div className="flex justify-center mb-12 sm:mb-20 px-4 animate-fade-in-scale" style={{ animationDelay: '0.4s' }}>
             <Button
               onClick={() => setShowAuthModal(true)}
               size="lg"
-              className="bg-primary hover:bg-primary/90 text-primary-foreground px-8 sm:px-12 py-5 sm:py-6 text-base sm:text-lg rounded-full transition-all duration-200 hover:scale-[1.02] cursor-pointer font-semibold w-full sm:w-auto relative overflow-hidden shimmer-button"
+              className="gradient-primary hover:opacity-90 text-white px-8 sm:px-16 py-6 sm:py-9 text-base sm:text-2xl rounded-full transition-smooth hover:scale-105 active:scale-95 cursor-pointer font-bold shadow-pink hover-glow w-full sm:w-auto max-w-md group relative overflow-hidden"
             >
-              <Eye className="mr-2 w-4 h-4 sm:w-5 sm:h-5" />
-              Vérifier maintenant
+              <Eye className="mr-2 sm:mr-3 w-5 h-5 sm:w-7 sm:h-7 group-hover:animate-blink" />
+              <span>Découvrir la vérité</span>
             </Button>
           </div>
 
-          <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 sm:gap-6 max-w-4xl mx-auto px-4">
-            <div className="flex flex-col items-center gap-2 p-5 sm:p-6 rounded-xl border border-primary/20 bg-primary/5">
-              <Shield className="w-6 h-6 sm:w-7 sm:h-7 text-primary mb-1" />
-              <span className="text-sm sm:text-base font-semibold text-foreground">Totalement anonyme</span>
-              <span className="text-xs sm:text-sm text-muted-foreground">Personne ne saura</span>
+          {/* Stats modernes - responsive */}
+          <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 sm:gap-7 max-w-5xl mx-auto px-4">
+            <div className="flex flex-col items-center gap-2 sm:gap-3 p-6 sm:p-8 rounded-2xl bg-white shadow-pink hover-lift transition-smooth animate-fade-in-up" style={{ animationDelay: '0.5s' }}>
+              <div className="w-12 h-12 sm:w-14 sm:h-14 rounded-full gradient-primary flex items-center justify-center mb-1 sm:mb-2">
+                <Shield className="w-6 h-6 sm:w-7 sm:h-7 text-white" />
+              </div>
+              <span className="text-sm sm:text-lg font-bold text-foreground tracking-wide">Totalement anonyme 🔒</span>
+              <span className="text-xs sm:text-base text-muted-foreground text-center">Personne ne saura jamais</span>
             </div>
-            <div className="flex flex-col items-center gap-2 p-5 sm:p-6 rounded-xl border border-primary/20 bg-primary/5">
-              <Eye className="w-6 h-6 sm:w-7 sm:h-7 text-primary mb-1" />
-              <span className="text-sm sm:text-base font-semibold text-foreground">2,1M utilisateurs</span>
-              <span className="text-xs sm:text-sm text-muted-foreground">Actifs chaque jour</span>
+            <div className="flex flex-col items-center gap-2 sm:gap-3 p-6 sm:p-8 rounded-2xl bg-white shadow-purple hover-lift transition-smooth animate-fade-in-up" style={{ animationDelay: '0.6s' }}>
+              <div className="w-12 h-12 sm:w-14 sm:h-14 rounded-full gradient-secondary flex items-center justify-center mb-1 sm:mb-2">
+                <Eye className="w-6 h-6 sm:w-7 sm:h-7 text-white" />
+              </div>
+              <span className="text-sm sm:text-lg font-bold text-foreground tracking-wide">
+                {statsLoading ? (
+                  <span className="inline-block w-16 h-5 bg-gray-200 animate-pulse rounded"></span>
+                ) : (
+                  `${formatNumber(stats.totalUsers)} utilisateur${stats.totalUsers > 1 ? 's' : ''} 🌍`
+                )}
+              </span>
+              <span className="text-xs sm:text-base text-muted-foreground text-center">
+                {statsLoading ? 'Chargement...' : 'Actifs sur la plateforme'}
+              </span>
             </div>
-            <div className="flex flex-col items-center gap-2 p-5 sm:p-6 rounded-xl border border-accent/30 bg-accent/5">
-              <Heart className="w-6 h-6 sm:w-7 sm:h-7 text-accent mb-1" />
-              <span className="text-sm sm:text-base font-semibold text-foreground">47K tromperies</span>
-              <span className="text-xs sm:text-sm text-muted-foreground">Dévoilées à ce jour</span>
+            <div className="flex flex-col items-center gap-2 sm:gap-3 p-6 sm:p-8 rounded-2xl bg-white shadow-orange hover-lift transition-smooth animate-fade-in-up" style={{ animationDelay: '0.7s' }}>
+              <div className="w-12 h-12 sm:w-14 sm:h-14 rounded-full gradient-accent flex items-center justify-center mb-1 sm:mb-2 animate-heartbeat">
+                <Heart className="w-6 h-6 sm:w-7 sm:h-7 text-white" />
+              </div>
+              <span className="text-sm sm:text-lg font-bold text-foreground tracking-wide">
+                {statsLoading ? (
+                  <span className="inline-block w-16 h-5 bg-gray-200 animate-pulse rounded"></span>
+                ) : (
+                  `${formatNumber(stats.totalMatches)} tromperie${stats.totalMatches > 1 ? 's' : ''} 💔`
+                )}
+              </span>
+              <span className="text-xs sm:text-base text-muted-foreground text-center">
+                {statsLoading ? 'Chargement...' : 'Dévoilées à ce jour'}
+              </span>
             </div>
           </div>
         </div>
       </section>
 
-      <section className="py-16 sm:py-24 px-4 sm:px-6 lg:px-8 relative">
+      {/* Section Stats en temps réel */}
+      <section className="py-16 sm:py-28 px-4 sm:px-6 lg:px-8 relative">
         <div className="max-w-6xl mx-auto">
-          <div className="text-center mb-12 sm:mb-16">
-            <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full border border-primary/30 bg-primary/5 mb-6">
-              <div className="w-2 h-2 rounded-full bg-primary animate-pulse" />
-              <span className="text-sm text-foreground">En ce moment même</span>
+          <div className="text-center mb-10 sm:mb-18 animate-fade-in-scale">
+            <div className="inline-flex items-center gap-2 sm:gap-3 px-5 sm:px-6 py-2 sm:py-3 rounded-full gradient-primary shadow-pink mb-6 sm:mb-8 animate-bounce-gentle">
+              <div className="w-2 h-2 sm:w-3 sm:h-3 rounded-full bg-white animate-pulse" />
+              <span className="text-sm sm:text-base font-bold text-white tracking-wide">En ce moment même ⚡</span>
             </div>
           </div>
 
@@ -88,150 +159,93 @@ export default function Home() {
         </div>
       </section>
 
-      <section className="py-16 sm:py-24 px-4 sm:px-6 lg:px-8 relative">
+      {/* Section Comment ça marche */}
+      <section className="py-16 sm:py-28 px-4 sm:px-6 lg:px-8 relative">
         <div className="max-w-7xl mx-auto">
-          <div className="text-center mb-16 sm:mb-20">
-            <h2 className="text-3xl sm:text-4xl md:text-5xl font-bold mb-4 text-pretty text-foreground px-4">
-              Partout dans le monde
+          <div className="text-center mb-12 sm:mb-24 animate-fade-in-up">
+            <h2 className="text-3xl sm:text-5xl md:text-6xl font-black mb-4 sm:mb-6 text-balance leading-tight px-2 sm:px-4 tracking-tighter">
+              Comment ça marche ? 🤔
             </h2>
-            <p className="text-muted-foreground text-base sm:text-lg text-pretty">
-              Des milliers de personnes cherchent la vérité. En ce moment.
+            <p className="text-foreground/70 text-lg sm:text-2xl text-balance font-medium px-4 tracking-wide">
+              Simple. Rapide. <span className="text-primary font-bold">Efficace</span>. ✨
             </p>
           </div>
 
-          <InteractiveMap />
-        </div>
-      </section>
-
-      <section className="py-16 sm:py-24 px-4 sm:px-6 lg:px-8 relative">
-        <div className="max-w-6xl mx-auto">
-          <div className="text-center mb-16 sm:mb-20">
-            <h2 className="text-3xl sm:text-4xl md:text-6xl font-bold mb-4 text-pretty leading-tight text-foreground px-4">
-              Comment ça marche ?
-            </h2>
-            <p className="text-muted-foreground text-lg sm:text-xl text-pretty">Simple. Rapide. Efficace.</p>
-          </div>
-
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-6 sm:gap-8">
-            <div className="relative p-6 sm:p-8 rounded-2xl border border-primary/20 bg-card hover:border-primary/40 transition-colors">
-              <div className="w-14 h-14 sm:w-16 sm:h-16 rounded-xl bg-primary/10 border border-primary/30 flex items-center justify-center mb-5 sm:mb-6">
-                <span className="text-2xl sm:text-3xl font-bold text-primary">1</span>
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-6 sm:gap-10">
+            {/* Étape 1 */}
+            <div className="relative p-6 sm:p-10 rounded-3xl bg-white shadow-pink hover-lift transition-smooth group animate-slide-in-left">
+              <div className="w-14 h-14 sm:w-20 sm:h-20 rounded-2xl gradient-primary shadow-lg flex items-center justify-center mb-5 sm:mb-8 float-animation group-hover:scale-110 transition-transform">
+                <span className="text-2xl sm:text-4xl font-black text-white">1</span>
               </div>
-              <h3 className="text-lg sm:text-xl font-semibold mb-3 text-foreground text-pretty">Crée ton compte</h3>
-              <p className="text-sm sm:text-base text-muted-foreground leading-relaxed text-pretty text-left">
-                Inscription en 30 secondes via Google ou email. Totalement gratuit.
+              <h3 className="text-lg sm:text-2xl font-bold mb-3 sm:mb-4 text-foreground text-balance tracking-wide">
+                Crée ton compte 🚀
+              </h3>
+              <p className="text-sm sm:text-lg text-muted-foreground leading-relaxed text-balance">
+                Inscription en <span className="font-bold text-foreground">30 secondes</span> via Google ou email. Totalement gratuit.
               </p>
             </div>
 
-            <div className="relative p-6 sm:p-8 rounded-2xl border border-primary/20 bg-card hover:border-primary/40 transition-colors">
-              <div className="w-14 h-14 sm:w-16 sm:h-16 rounded-xl bg-primary/10 border border-primary/30 flex items-center justify-center mb-5 sm:mb-6">
-                <span className="text-2xl sm:text-3xl font-bold text-primary">2</span>
+            {/* Étape 2 */}
+            <div className="relative p-6 sm:p-10 rounded-3xl bg-white shadow-purple hover-lift transition-smooth group animate-fade-in-scale" style={{ animationDelay: '0.2s' }}>
+              <div className="w-14 h-14 sm:w-20 sm:h-20 rounded-2xl gradient-secondary shadow-lg flex items-center justify-center mb-5 sm:mb-8 float-animation group-hover:scale-110 transition-transform" style={{ animationDelay: '0.5s' }}>
+                <span className="text-2xl sm:text-4xl font-black text-white">2</span>
               </div>
-              <h3 className="text-lg sm:text-xl font-semibold mb-3 text-foreground text-pretty">Fais ta déclaration</h3>
-              <p className="text-sm sm:text-base text-muted-foreground leading-relaxed text-pretty text-left">
-                Indique anonymement avec qui tu es en couple. Rien n'est visible publiquement.
+              <h3 className="text-lg sm:text-2xl font-bold mb-3 sm:mb-4 text-foreground text-balance tracking-wide">
+                Fais ta déclaration 💕
+              </h3>
+              <p className="text-sm sm:text-lg text-muted-foreground leading-relaxed text-balance">
+                Indique <span className="font-bold text-foreground">anonymement</span> avec qui tu es en couple. Rien n'est visible publiquement.
               </p>
             </div>
 
-            <div className="relative p-6 sm:p-8 rounded-2xl border border-accent/30 bg-card hover:border-accent/50 transition-colors">
-              <div className="w-14 h-14 sm:w-16 sm:h-16 rounded-xl bg-accent/10 border border-accent/30 flex items-center justify-center mb-5 sm:mb-6">
-                <CheckCircle2 className="w-7 h-7 sm:w-8 sm:h-8 text-accent" />
+            {/* Étape 3 */}
+            <div className="relative p-6 sm:p-10 rounded-3xl bg-white shadow-orange hover-lift transition-smooth group animate-slide-in-right" style={{ animationDelay: '0.4s' }}>
+              <div className="w-14 h-14 sm:w-20 sm:h-20 rounded-2xl gradient-accent shadow-lg flex items-center justify-center mb-5 sm:mb-8 float-animation group-hover:scale-110 transition-transform" style={{ animationDelay: '1s' }}>
+                <CheckCircle2 className="w-8 h-8 sm:w-12 sm:h-12 text-white group-hover:rotate-12 transition-transform" />
               </div>
-              <h3 className="text-lg sm:text-xl font-semibold mb-3 text-foreground text-pretty">Découvre la vérité</h3>
-              <p className="text-sm sm:text-base text-muted-foreground leading-relaxed text-pretty text-left">
+              <h3 className="text-lg sm:text-2xl font-bold mb-3 sm:mb-4 text-foreground text-balance tracking-wide">
+                Découvre la vérité 🎯
+              </h3>
+              <p className="text-sm sm:text-lg text-muted-foreground leading-relaxed text-balance">
                 Si cette personne déclare quelqu'un d'autre,{" "}
-                <strong className="text-accent">vous serez tous deux alertés</strong>. Instantanément.
+                <strong className="text-accent font-bold">vous serez tous deux alertés</strong>. Instantanément. ⚡
               </p>
             </div>
           </div>
         </div>
       </section>
 
-      <section className="py-20 sm:py-32 px-4 sm:px-6 lg:px-8 relative">
-        <div className="text-center max-w-4xl mx-auto relative z-10">
-          <div className="mb-6 sm:mb-8">
-            <Eye className="w-12 h-12 sm:w-14 sm:h-14 text-primary mx-auto animate-blink" />
+      {/* Section finale CTA */}
+      <section className="py-20 sm:py-36 px-4 sm:px-6 lg:px-8 relative">
+        <div className="text-center max-w-5xl mx-auto relative z-10 w-full animate-fade-in-up">
+          <div className="mb-6 sm:mb-10">
+            <div className="w-16 h-16 sm:w-24 sm:h-24 rounded-full gradient-primary shadow-pink mx-auto flex items-center justify-center float-animation hover:scale-110 transition-transform cursor-pointer">
+              <Eye className="w-8 h-8 sm:w-12 sm:h-12 text-white animate-blink" />
+            </div>
           </div>
 
-          <h2 className="text-3xl sm:text-4xl md:text-6xl font-bold mb-6 sm:mb-8 text-pretty leading-tight text-foreground px-4">
-            Tu mérites de savoir.
+          <h2 className="text-3xl sm:text-5xl md:text-6xl lg:text-7xl font-black mb-6 sm:mb-10 text-balance leading-tight px-4 tracking-tighter">
+            Tu mérites de savoir. ✨
             <br />
-            <span className="text-primary">Tu mérites la vérité</span>.
+            <span className="gradient-text-animated inline-block">
+              Tu mérites la vérité
+            </span>
+            .
           </h2>
 
-          <p className="text-lg sm:text-xl text-muted-foreground mb-10 sm:mb-12 text-pretty max-w-2xl mx-auto leading-relaxed px-4 text-center">
-            Ne reste pas dans le doute. Rejoins les <strong className="text-foreground">2,1 millions</strong> de
-            personnes qui ont choisi la clarté.
+          <p className="text-lg sm:text-2xl text-foreground/70 mb-10 sm:mb-16 text-balance max-w-3xl mx-auto leading-relaxed px-4 text-center font-medium tracking-wide">
+            Ne reste pas dans le doute. Rejoins les <strong className="text-foreground font-bold">2,1 millions</strong> de
+            personnes qui ont choisi la <span className="text-primary font-bold">clarté</span>. 🌟
           </p>
 
           <Button
             onClick={() => setShowAuthModal(true)}
             size="lg"
-            className="bg-primary hover:bg-primary/90 text-primary-foreground px-10 sm:px-14 py-6 sm:py-7 text-lg sm:text-xl rounded-full transition-all duration-200 hover:scale-[1.02] mb-12 sm:mb-16 cursor-pointer font-semibold w-full sm:w-auto relative overflow-hidden shimmer-button"
+            className="gradient-secondary hover:opacity-90 text-white px-10 sm:px-18 py-7 sm:py-10 text-lg sm:text-2xl rounded-full transition-smooth hover:scale-105 active:scale-95 cursor-pointer font-bold shadow-purple hover-glow w-full sm:w-auto max-w-md group relative overflow-hidden"
           >
-            <Eye className="mr-2 w-5 h-5 sm:w-6 sm:h-6" />
-            Commencer maintenant
+            <Eye className="mr-2 sm:mr-3 w-6 h-6 sm:w-8 sm:h-8 group-hover:animate-blink" />
+            <span className="block sm:inline">Commencer maintenant</span>
           </Button>
-
-          <div className="space-y-6">
-            <p className="text-xs sm:text-sm text-muted-foreground text-pretty">
-              Partage JustMe à quelqu'un qui en a besoin
-            </p>
-            <div className="flex flex-col sm:flex-row flex-wrap gap-3 sm:gap-4 justify-center items-center px-4">
-              <Button
-                variant="outline"
-                className="border-primary/40 hover:bg-primary/10 hover:border-primary rounded-full px-6 cursor-pointer bg-transparent w-full sm:w-auto"
-              >
-                <svg className="mr-2 w-5 h-5" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-                  <defs>
-                    <radialGradient id="instagramGradient" cx="30%" cy="107%" r="150%">
-                      <stop offset="0%" stopColor="#fdf497" />
-                      <stop offset="5%" stopColor="#fdf497" />
-                      <stop offset="45%" stopColor="#fd5949" />
-                      <stop offset="60%" stopColor="#d6249f" />
-                      <stop offset="90%" stopColor="#285AEB" />
-                    </radialGradient>
-                  </defs>
-                  <rect
-                    x="2"
-                    y="2"
-                    width="20"
-                    height="20"
-                    rx="5"
-                    stroke="url(#instagramGradient)"
-                    strokeWidth="2"
-                    fill="none"
-                  />
-                  <circle cx="12" cy="12" r="4" stroke="url(#instagramGradient)" strokeWidth="2" fill="none" />
-                  <circle cx="17.5" cy="6.5" r="1.5" fill="url(#instagramGradient)" />
-                </svg>
-                Partager sur Instagram
-              </Button>
-              <Button
-                variant="outline"
-                className="border-primary/40 hover:bg-primary/10 hover:border-primary rounded-full px-6 cursor-pointer bg-transparent w-full sm:w-auto"
-              >
-                <svg className="mr-2 w-5 h-5" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-                  <path
-                    d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347z"
-                    fill="#25D366"
-                  />
-                  <path
-                    d="M20.52 3.449C18.24 1.245 15.24 0 12.045 0 5.463 0 .104 5.334.101 11.893c0 2.096.547 4.142 1.588 5.945L.057 24l6.304-1.654a11.963 11.963 0 005.683 1.448h.005c6.582 0 11.94-5.334 11.943-11.893a11.83 11.83 0 00-3.472-8.452zM12.045 21.785h-.004a9.925 9.925 0 01-5.058-1.383l-.362-.215-3.754.984.999-3.648-.236-.374a9.86 9.86 0 01-1.511-5.26c.002-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.892 6.993c-.002 5.45-4.436 9.884-9.842 9.884z"
-                    fill="#25D366"
-                  />
-                </svg>
-                Partager sur WhatsApp
-              </Button>
-              <Button
-                variant="outline"
-                className="border-primary/40 hover:bg-primary/10 hover:border-primary rounded-full px-6 cursor-pointer bg-transparent w-full sm:w-auto"
-              >
-                <Link2 className="mr-2 w-4 h-4" />
-                Copier le lien
-              </Button>
-            </div>
-          </div>
         </div>
       </section>
 
