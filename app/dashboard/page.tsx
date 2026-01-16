@@ -134,7 +134,7 @@ export default function DashboardPage() {
             <div className="flex items-center">
               <div className="flex items-center gap-1.5 sm:gap-2 px-3 sm:px-4 md:px-6 py-1.5 sm:py-2 md:py-3 rounded-full gradient-primary shadow-pink transition-all duration-300 hover:scale-105 cursor-pointer">
                 <Eye className="w-3.5 h-3.5 sm:w-4 sm:h-4 md:w-5 md:h-5 text-white animate-blink" />
-                <span className="text-sm sm:text-base md:text-lg lg:text-xl font-extrabold tracking-wide text-white">JustMe</span>
+                <span className="text-sm sm:text-base md:text-lg lg:text-xl font-extrabold tracking-wide text-white">JusteMoi</span>
               </div>
             </div>
 

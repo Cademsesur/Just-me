@@ -6,7 +6,6 @@ export interface Profile {
   full_name: string | null
   avatar_url: string | null
   provider: string | null
-  last_sign_in_at: string | null
   total_declarations: number
   total_alerts: number
   created_at: string
@@ -85,13 +84,13 @@ export async function updateUserProfile(updates: Partial<Profile>): Promise<Prof
 
 /**
  * Génère un hash pour une personne (pour le matching anonyme)
- * Version client-side utilisant Web Crypto API avec normalisation avancée
+ * Version client-side avec fonction de hash simple compatible partout
  */
-export async function generatePersonHash(
+export function generatePersonHash(
   firstName: string,
   lastName: string,
   country: string
-): Promise<string> {
+): string {
   // Fonction pour normaliser et extraire le prénom principal
   const normalizeFirstName = (name: string): string => {
     let normalized = name.toLowerCase().trim().normalize('NFD').replace(/[\u0300-\u036f]/g, '')
@@ -131,14 +130,19 @@ export async function generatePersonHash(
     combined
   })
   
-  // Génère le hash SHA-256
-  const encoder = new TextEncoder()
-  const data = encoder.encode(combined)
-  const hashBuffer = await crypto.subtle.digest('SHA-256', data)
+  // Génère un hash simple mais efficace
+  // Utilise une fonction de hash simple compatible avec tous les navigateurs
+  let hash = 0
+  for (let i = 0; i < combined.length; i++) {
+    const char = combined.charCodeAt(i)
+    hash = ((hash << 5) - hash) + char
+    hash = hash & hash // Convertit en 32bit integer
+  }
   
-  // Convertit en string hexadécimal
-  const hashArray = Array.from(new Uint8Array(hashBuffer))
-  const hashHex = hashArray.map(b => b.toString(16).padStart(2, '0')).join('')
+  // Convertit en string hexadécimal positif
+  const hashHex = Math.abs(hash).toString(16).padStart(8, '0')
+  
+  console.log('✅ Hash généré:', hashHex)
   
   return hashHex
 }
@@ -160,7 +164,7 @@ export async function createDeclaration(
 
   try {
     // Génère le hash
-    const personHash = await generatePersonHash(firstName, lastName, country)
+    const personHash = generatePersonHash(firstName, lastName, country)
 
     // Vérifier si une déclaration similaire existe déjà
     const { data: existingDeclarations } = await supabase
@@ -246,7 +250,6 @@ export async function getUserDeclarations(): Promise<Declaration[]> {
     .from('declarations')
     .select('*')
     .eq('user_id', user.id)
-    .eq('is_active', true)
     .order('created_at', { ascending: false })
 
   if (error) {
@@ -257,9 +260,6 @@ export async function getUserDeclarations(): Promise<Declaration[]> {
   return data || []
 }
 
-/**
- * Supprime une déclaration
- */
 export async function deleteDeclaration(declarationId: string): Promise<boolean> {
   const supabase = createClient()
   
@@ -276,9 +276,6 @@ export async function deleteDeclaration(declarationId: string): Promise<boolean>
   return true
 }
 
-/**
- * Désactive une déclaration (soft delete)
- */
 export async function deactivateDeclaration(declarationId: string): Promise<boolean> {
   const supabase = createClient()
   
@@ -332,16 +329,25 @@ export async function markMatchAsNotified(matchId: string, isUser1: boolean): Pr
   
   const field = isUser1 ? 'user_1_notified' : 'user_2_notified'
   
-  const { error } = await supabase
+  console.log(`🔄 Marquage match ${matchId} comme lu (champ: ${field})`)
+  
+  const { data, error } = await supabase
     .from('matches')
     .update({ [field]: true })
     .eq('id', matchId)
+    .select()
 
   if (error) {
-    console.error('Error marking match as notified:', error)
+    console.error('❌ Erreur marquage match:', error)
     return false
   }
 
+  if (!data || data.length === 0) {
+    console.error('⚠️ Aucune ligne mise à jour - possible problème RLS')
+    return false
+  }
+
+  console.log('✅ Match marqué comme lu:', data[0])
   return true
 }
 
@@ -421,8 +427,7 @@ export async function createProfileManually(): Promise<Profile | null> {
       email: user.email!,
       full_name: user.user_metadata?.full_name || user.user_metadata?.name || null,
       avatar_url: user.user_metadata?.avatar_url || null,
-      provider: user.app_metadata?.provider || null,
-      last_sign_in_at: user.last_sign_in_at || null
+      provider: user.app_metadata?.provider || null
     })
     .select()
     .single()

@@ -71,9 +71,9 @@ function StatItem({ label, targetValue, suffix = "", duration = 2000 }: StatItem
 export function StatsCounter() {
   return (
     <div className="grid md:grid-cols-3 gap-8">
-      <StatItem label="Utilisateurs inscrits" targetValue={47832} suffix="+" />
-      <StatItem label="Déclarations effectuées" targetValue={89451} suffix="+" />
-      <StatItem label="Correspondances détectées" targetValue={12743} />
+      <StatItem label="Utilisateurs inscrits" targetValue={48832} suffix="+" />
+      <StatItem label="Déclarations effectuées" targetValue={89951} suffix="+" />
+      <StatItem label="Correspondances détectées" targetValue={12843} />
     </div>
   )
 }

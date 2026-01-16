@@ -68,7 +68,7 @@ export function useMatches() {
           
           // Afficher notification système si disponible
           if ('Notification' in window && Notification.permission === 'granted') {
-            new Notification('🎉 Just Me - Match trouvé !', {
+            new Notification('🎉 JusteMoi - Match trouvé !', {
               body: 'Quelqu\'un d\'autre a déclaré la même personne que toi.',
               icon: '/icon.svg',
               badge: '/icon.svg',
@@ -84,10 +84,32 @@ export function useMatches() {
   }, [])
 
   const markAsRead = async (matchId: string, isUser1: boolean) => {
+    // Mise à jour optimiste de l'état local AVANT l'appel API
+    setMatches(prevMatches => 
+      prevMatches.map(match => 
+        match.id === matchId 
+          ? {
+              ...match,
+              user_1_notified: isUser1 ? true : match.user_1_notified,
+              user_2_notified: !isUser1 ? true : match.user_2_notified
+            }
+          : match
+      )
+    )
+    
+    // Mettre à jour le compteur immédiatement
+    setUnreadCount(prev => Math.max(0, prev - 1))
+    
+    // Appel API en arrière-plan (sans recharger)
     const success = await markMatchAsNotified(matchId, isUser1)
-    if (success) {
+    
+    // Si l'API échoue, on pourrait annuler l'update optimiste ici
+    if (!success) {
+      console.error('Échec du marquage comme lu')
+      // Optionnel: recharger pour sync avec le serveur
       await loadMatches()
     }
+    
     return success
   }
 

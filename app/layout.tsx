@@ -9,7 +9,7 @@ const _geist = Geist({ subsets: ["latin"] })
 const _geistMono = Geist_Mono({ subsets: ["latin"] })
 
 export const metadata: Metadata = {
-  title: "JustMe - Et si tu n'étais pas la seule ?",
+  title: "JusteMoi - Et si tu n'étais pas la seule ?",
   description:
     "Compare anonymement des déclarations de relation. Découvre si d'autres personnes déclarent être en relation avec la même personne.",
   generator: "v0.app",

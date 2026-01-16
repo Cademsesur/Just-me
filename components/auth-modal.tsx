@@ -52,31 +52,55 @@ export function AuthModal({ open, onOpenChange }: AuthModalProps) {
               </div>
             </div>
             <DialogTitle className="text-2xl sm:text-3xl md:text-4xl font-extrabold text-center text-white mb-2 sm:mb-3 px-2">
-              Découvre la vérité 💔
+              Prêt(e) à savoir ? ✨
             </DialogTitle>
-            <DialogDescription className="text-center text-white/90 text-sm sm:text-base md:text-lg pt-1 sm:pt-2 font-medium px-3 sm:px-4">
-              Connecte-toi pour commencer à vérifier.<br className="hidden sm:block" />
+            <DialogDescription className="text-center text-white/90 text-sm sm:text-base md:text-lg pt-1 sm:pt-2 font-medium px-3 sm:px-4 leading-relaxed">
+              Dans <strong className="text-white">30 secondes</strong>, tu auras fait ta déclaration.<br className="hidden sm:block" />
               <span className="sm:hidden"> </span>
-              C'est <strong className="text-white">rapide</strong>, <strong className="text-white">anonyme</strong> et <strong className="text-white">gratuit</strong>. ✨
+              Dans les minutes qui suivent, tu auras peut-être <strong className="text-white">ta réponse</strong>. 🎯
             </DialogDescription>
           </DialogHeader>
         </div>
 
         {/* Content section */}
         <div className="p-4 sm:p-6 md:p-8 space-y-4 sm:space-y-6">
-          {/* Benefits badges */}
-          <div className="grid grid-cols-3 gap-2 sm:gap-3">
-            <div className="text-center p-2 sm:p-3 bg-gradient-to-br from-primary/5 to-primary/10 rounded-lg sm:rounded-xl border border-primary/20">
-              <div className="text-xl sm:text-2xl mb-0.5 sm:mb-1">🔒</div>
-              <p className="text-[10px] sm:text-xs font-bold text-primary">Anonyme</p>
+          {/* Quick promise */}
+          <div className="text-center p-3 sm:p-4 bg-linear-to-br from-primary/5 to-secondary/5 rounded-xl border border-primary/10">
+            <p className="text-sm sm:text-base text-foreground/80 font-medium">
+              🚀 <strong className="text-foreground">Totalement gratuit</strong>. <strong className="text-foreground">Totalement anonyme</strong>. 🔒
+            </p>
+          </div>
+
+          {/* Benefits - reformulés */}
+          <div className="space-y-3 sm:space-y-4">
+            <div className="flex items-start gap-3">
+              <div className="w-10 h-10 sm:w-12 sm:h-12 rounded-xl bg-linear-to-br from-primary/10 to-primary/20 flex items-center justify-center shrink-0">
+                <Eye className="w-5 h-5 sm:w-6 sm:h-6 text-primary" />
+              </div>
+              <div className="flex-1 pt-1">
+                <h4 className="font-bold text-foreground text-sm sm:text-base mb-1">Savoir si tu es le/la seul(e)</h4>
+                <p className="text-xs sm:text-sm text-muted-foreground">Vérifie anonymement si ton couple est vraiment exclusif</p>
+              </div>
             </div>
-            <div className="text-center p-2 sm:p-3 bg-gradient-to-br from-secondary/5 to-secondary/10 rounded-lg sm:rounded-xl border border-secondary/20">
-              <div className="text-xl sm:text-2xl mb-0.5 sm:mb-1">⚡</div>
-              <p className="text-[10px] sm:text-xs font-bold text-secondary">Rapide</p>
+            
+            <div className="flex items-start gap-3">
+              <div className="w-10 h-10 sm:w-12 sm:h-12 rounded-xl bg-linear-to-br from-secondary/10 to-secondary/20 flex items-center justify-center shrink-0">
+                <span className="text-xl sm:text-2xl">⚡</span>
+              </div>
+              <div className="flex-1 pt-1">
+                <h4 className="font-bold text-foreground text-sm sm:text-base mb-1">Alerte instantanée si ambiguïté</h4>
+                <p className="text-xs sm:text-sm text-muted-foreground">Si ton partenaire déclare quelqu'un d'autre, tu le sauras tout de suite</p>
+              </div>
             </div>
-            <div className="text-center p-2 sm:p-3 bg-gradient-to-br from-accent/5 to-accent/10 rounded-lg sm:rounded-xl border border-accent/20">
-              <div className="text-xl sm:text-2xl mb-0.5 sm:mb-1">💯</div>
-              <p className="text-[10px] sm:text-xs font-bold text-accent">Gratuit</p>
+            
+            <div className="flex items-start gap-3">
+              <div className="w-10 h-10 sm:w-12 sm:h-12 rounded-xl bg-linear-to-br from-accent/10 to-accent/20 flex items-center justify-center shrink-0">
+                <span className="text-xl sm:text-2xl">🛡️</span>
+              </div>
+              <div className="flex-1 pt-1">
+                <h4 className="font-bold text-foreground text-sm sm:text-base mb-1">Personne ne saura rien</h4>
+                <p className="text-xs sm:text-sm text-muted-foreground">Sauf si vous déclarez tous les deux des personnes différentes</p>
+              </div>
             </div>
           </div>
 
@@ -117,7 +141,7 @@ export function AuthModal({ open, onOpenChange }: AuthModalProps) {
           </Button>
 
           {/* Info box */}
-          <div className="bg-gradient-to-br from-primary/5 via-secondary/5 to-accent/5 border-2 border-primary/20 rounded-xl sm:rounded-2xl p-3 sm:p-4">
+          <div className="bg-linear-to-br from-primary/5 via-secondary/5 to-accent/5 border-2 border-primary/20 rounded-xl sm:rounded-2xl p-3 sm:p-4">
             <p className="text-[10px] sm:text-xs text-center text-muted-foreground leading-relaxed">
               🔐 <strong className="text-foreground">100% Sécurisé :</strong> Nous ne partageons jamais tes données.
               Ton identité reste <span className="text-primary font-semibold">totalement anonyme</span>. 💯

@@ -78,22 +78,22 @@ export function MatchesPanel() {
     setLoadingDetails(false)
   }
 
-  const handleMatchClick = (match: MatchWithDetails) => {
+  const handleMatchClick = async (match: MatchWithDetails) => {
     setSelectedMatch(match)
     setShowMatchModal(true)
-  }
-
-  const handleCloseModal = async () => {
-    // Marquer comme lu à la fermeture du modal si pas encore notifié
-    if (selectedMatch && !selectedMatch.isNotified && selectedMatch.myDeclaration) {
-      const matchData = matches.find(m => m.id === selectedMatch.id)
+    
+    // Marquer comme lu immédiatement au clic
+    if (!match.isNotified && match.myDeclaration) {
+      const matchData = matches.find(m => m.id === match.id)
       
       if (matchData) {
         const isUser1 = myDeclarationIds.includes(matchData.declaration_id_1)
-        await markAsRead(selectedMatch.id, isUser1)
+        await markAsRead(match.id, isUser1)
       }
     }
-    
+  }
+
+  const handleCloseModal = () => {
     setShowMatchModal(false)
     setSelectedMatch(null)
   }
@@ -115,6 +115,14 @@ export function MatchesPanel() {
       day: 'numeric', 
       month: 'short' 
     })
+  }
+
+  const isNewMatch = (dateString: string) => {
+    const date = new Date(dateString)
+    const now = new Date()
+    const diffMs = now.getTime() - date.getTime()
+    const diffDays = Math.floor(diffMs / 86400000)
+    return diffDays < 1 // Nouveau si moins d'1 jour
   }
 
   if (loading || loadingDetails) {
@@ -261,7 +269,7 @@ export function MatchesPanel() {
                       </p>
                     </div>
                   </div>
-                  {!match.isNotified && (
+                  {!match.isNotified && isNewMatch(match.created_at) && (
                     <Badge className="gradient-accent text-white text-[10px] sm:text-xs font-bold px-2 sm:px-3 py-0.5 sm:py-1 shadow-orange animate-pulse border-0 shrink-0">
                       Nouveau
                     </Badge>
@@ -322,14 +330,11 @@ export function MatchesPanel() {
                     <AlertTriangle className="w-4 h-4 sm:w-5 sm:h-5 text-orange-500" />
                   </div>
                   <div className="min-w-0 flex-1">
-                    <p className="text-xs sm:text-sm font-bold text-orange-700 mb-0.5 sm:mb-1 flex items-center gap-2">
+                    <p className="text-xs sm:text-sm font-bold text-orange-700 mb-0.5 sm:mb-1">
                       ⚠️ Correspondance détectée
-                      <span className="text-[10px] sm:text-xs font-semibold px-2 py-0.5 bg-orange-500/20 text-orange-700 rounded-full">
-                        {Math.round(selectedMatch.matchScore * 100)}% similarité
-                      </span>
                     </p>
                     <p className="text-[10px] sm:text-xs text-orange-600 leading-relaxed">
-                      Une autre personne a déclaré quelqu'un avec un nom très similaire ({Math.round(selectedMatch.matchScore * 100)}% de correspondance) dans le même pays.
+                      Une autre personne a déclaré quelqu'un avec un nom similaire dans le même pays.
                       Par respect de l'anonymat, nous ne révélons pas l'identité de l'autre utilisateur.
                     </p>
                   </div>
